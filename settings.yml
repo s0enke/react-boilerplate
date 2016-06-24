@@ -1,0 +1,19 @@
+---
+project: react-boilerplate
+default-region: us-east-1
+code-bucket: gordon-13a19e1a
+apps:
+  - gordon.contrib.helpers
+  - gordon.contrib.lambdas
+  - ci_build
+contexts:
+  default:
+    aws_region: ref://aws_region
+apigateway:
+  helloapi:
+    description: My first API
+    resources:
+      /:
+        methods: [GET, POST]
+        integration:
+          lambda: ci_build.ci_build

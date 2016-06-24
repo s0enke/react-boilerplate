@@ -1,0 +1,14 @@
+- name: Deploy notifier
+  hosts: localhost
+  connection: local
+  gather_facts: False
+
+  vars:
+    aws_region: us-east-1
+
+  tasks:
+
+    - cloudformation:
+        stack_name: "react-boilerplate-ci-infrastructure"
+        template: "ci_build/infrastructure.yml"
+        template_format: yaml
