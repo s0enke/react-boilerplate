@@ -1,5 +1,8 @@
 ---
 AWSTemplateFormatVersion: "2010-09-09"
+Parameters:
+  GithubOauthToken:
+    Type: String
 Resources:
   ArtifactStoreBucket:
     Type: AWS::S3::Bucket
@@ -60,7 +63,8 @@ Resources:
                 Owner: s0enke
                 Repo: react-boilerplate
                 Branch: master
-                OAuthToken: aaasfd
+                OAuthToken:
+                  Ref: GithubOauthToken
               RunOrder: 1
         - Name: build_and_deploy
           Actions:

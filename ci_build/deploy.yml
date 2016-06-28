@@ -7,8 +7,11 @@
     aws_region: us-east-1
 
   tasks:
+    - include_vars: "vars/vars.yml"
 
     - cloudformation:
         stack_name: "react-boilerplate-ci-infrastructure"
         template: "ci_build/infrastructure.yml"
         template_format: yaml
+        template_parameters:
+          GithubOauthToken: "{{ github_oauth_token }}"
