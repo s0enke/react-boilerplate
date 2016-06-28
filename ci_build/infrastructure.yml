@@ -91,7 +91,7 @@ Resources:
           def handler(event, context):
             codepipeline = boto3.client('codepipeline')
             codepipeline.put_job_success_result(
-              jobId=event['codePipeline.job'].id
+              jobId=event['CodePipeline.job'].id
             )
       Handler: index.handler
       Role:
