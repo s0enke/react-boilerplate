@@ -89,6 +89,7 @@ Resources:
           import boto3
 
           def handler(event, context):
+            print(event)
             codepipeline = boto3.client('codepipeline')
             codepipeline.put_job_success_result(
               jobId=event['CodePipeline.job'].id
