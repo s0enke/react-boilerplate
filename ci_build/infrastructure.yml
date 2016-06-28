@@ -32,6 +32,7 @@ Resources:
           Principal:
             Service: codepipeline.amazonaws.com
           Action: sts:AssumeRole
+      Path: /
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSCodePipelineFullAccess
   Pipeline:
