@@ -34,7 +34,7 @@ Resources:
           Action: sts:AssumeRole
       Path: /
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSCodePipelineFullAccess
+        - arn:aws:iam::aws:policy/AdministratorAccess
   Pipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
