@@ -22,6 +22,17 @@ Resources:
           Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: CodepipelineStatus
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - codepipeline:GetJobDetails
+                  - codepipeline:PutJobSuccessResult
+                  - codepipeline:PutJobFailureResult
+                Resource: "*"
   PipelineRole:
     Type: AWS::IAM::Role
     Properties:
@@ -87,6 +98,7 @@ Resources:
       Code:
         ZipFile: |
           import boto3
+          import os
 
           def handler(event, context):
             print(event)
@@ -94,6 +106,7 @@ Resources:
             codepipeline.put_job_success_result(
               jobId=event['CodePipeline.job']['id']
             )
+            print(os.system("npm help"))
       Handler: index.handler
       Role:
         Fn::GetAtt:
