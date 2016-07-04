@@ -22,6 +22,7 @@ Resources:
           Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
       Policies:
         - PolicyName: CodepipelineStatus
           PolicyDocument:
@@ -97,21 +98,45 @@ Resources:
     Properties:
       Code:
         ZipFile: |
-          import boto3
-          import os
+          var child_process = require('child_process');
+          var fs = require('fs');
+          var AWS = require('aws-sdk');
 
-          def handler(event, context):
-            print(event)
-            codepipeline = boto3.client('codepipeline')
-            codepipeline.put_job_success_result(
-              jobId=event['CodePipeline.job']['id']
-            )
-            print(os.system("npm help"))
+          exports.handler = function(event, context) {
+            process.env.HOME = '/tmp';
+            console.log(child_process.execSync('rm -fr /tmp/lambda_function /tmp/.npm /tmp/bin', {encoding: 'utf-8'}));
+            fs.mkdirSync('/tmp/lambda_function');
+            process.chdir('/tmp/lambda_function');
+
+
+            // install newer version of node
+            console.log(child_process.execSync('node /usr/local/lib64/node-v4.3.x/lib/node_modules/npm/bin/npm-cli.js install npm npmlog --prefix=/tmp --progress=false', {encoding: 'utf-8'}));
+
+            console.log(child_process.execSync('find /tmp/ -name npm -type f', {encoding: 'utf-8'}));
+            fs.mkdirSync('/tmp/bin');
+            fs.symlinkSync('/tmp/node_modules/npm/bin/npm-cli.js', '/tmp/bin/npm');
+            process.env.PATH = '/tmp/bin:' + process.env.PATH;
+
+
+            console.log(child_process.execSync('npm --version', {encoding: 'utf-8'}));
+            //return;
+
+            var params = {Bucket: 'react-boilerplate-ci-infrastr-artifactstorebucket-jqwb4004sajz', Key: 'react-boilerplate-ci/myapp/RpxBfog.zip'};
+            var file = fs.createWriteStream("/tmp/lambda_function/artifact.zip");
+            var s3 = new AWS.S3({"signatureVersion":"v4"});
+            s3.getObject(params).createReadStream().pipe(file);
+            file.on('close', function(){
+              console.log(child_process.execSync('unzip artifact.zip', {encoding: 'utf-8'}));
+              console.log(child_process.execSync('npm install', {encoding: 'utf-8'}));
+              console.log(child_process.execSync('npm run build', {encoding: 'utf-8'}));
+              console.log(child_process.execSync('ls -al build', {encoding: 'utf-8'}));
+            });
+          };
       Handler: index.handler
       Role:
         Fn::GetAtt:
           - BuildAndDeployFunctionRole
           - Arn
-      Runtime: python2.7
-
-
+      Runtime: nodejs4.3
+      Timeout: 300
+      MemorySize: 1536
