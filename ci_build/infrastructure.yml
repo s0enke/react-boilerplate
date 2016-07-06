@@ -128,7 +128,10 @@ Resources:
             console.log(child_process.execSync('npm --version', {encoding: 'utf-8'}));
             //return;
 
-            var params = {Bucket: 'react-boilerplate-ci-infrastr-artifactstorebucket-jqwb4004sajz', Key: 'react-boilerplate-ci/myapp/RpxBfog.zip'};
+            var params = {
+              Bucket: inputArtifactConfig.location.s3Location.bucketName,
+              Key: inputArtifactConfig.location.s3Location.objectKey
+            };
             var file = fs.createWriteStream("/tmp/lambda_function/artifact.zip");
             var s3 = new AWS.S3({"signatureVersion":"v4"});
             s3.getObject(params).createReadStream().pipe(file);
