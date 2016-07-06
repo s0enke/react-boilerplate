@@ -106,6 +106,10 @@ Resources:
 
           exports.handler = function(event, context) {
             console.log(util.inspect(event, {depth: null}));
+            var job = event['CodePipeline.job'];
+            var inputArtifactConfig = job.data.inputArtifacts[0];
+            console.log(util.inspect(inputArtifactConfig, {depth: null}));
+
             process.env.HOME = '/tmp';
             console.log(child_process.execSync('rm -fr /tmp/lambda_function /tmp/.npm /tmp/bin', {encoding: 'utf-8'}));
             fs.mkdirSync('/tmp/lambda_function');
