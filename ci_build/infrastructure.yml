@@ -71,7 +71,7 @@ Resources:
                 Version: 1
                 Provider: GitHub
               OutputArtifacts:
-                - Name: myapp
+                - Name: SourceOutput
               Configuration:
                 Owner: s0enke
                 Repo: react-boilerplate
@@ -81,7 +81,8 @@ Resources:
               RunOrder: 1
         - Name: build_and_deploy
           Actions:
-            - InputArtifacts: []
+            - InputArtifacts:
+                - Name: SourceOutput
               Name: Lambda
               ActionTypeId:
                 Category: Invoke
