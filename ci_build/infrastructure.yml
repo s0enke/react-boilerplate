@@ -173,8 +173,12 @@ Resources:
     Properties:
       Code:
         ZipFile: |
+          import boto3
+          code_pipeline = boto3.client('codepipeline')
+
           def handler(event, context):
-            pass
+            job_id = event['CodePipeline.job']['id']
+            code_pipeline.put_job_success_result(jobId=job_id)
       Handler: index.handler
       Role:
         Fn::GetAtt:
