@@ -22,18 +22,8 @@ Resources:
           Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AWSCodePipelineCustomActionAccess
         - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
-      Policies:
-        - PolicyName: CodepipelineStatus
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - codepipeline:GetJobDetails
-                  - codepipeline:PutJobSuccessResult
-                  - codepipeline:PutJobFailureResult
-                Resource: "*"
   PipelineRole:
     Type: AWS::IAM::Role
     Properties:
