@@ -158,7 +158,8 @@
             "Type": "AWS::IAM::Role", 
             "Properties": {
                 "ManagedPolicyArns": [
-                    "arn:aws:iam::aws:policy/AdministratorAccess"
+                    "arn:aws:iam::aws:policy/AdministratorAccess", 
+                    "arn:aws:iam::aws:policy/IAMReadOnlyAccess"
                 ], 
                 "AssumeRolePolicyDocument": {
                     "Version": "2012-10-17", 
