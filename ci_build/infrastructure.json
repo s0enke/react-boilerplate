@@ -1,0 +1,213 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09", 
+    "Parameters": {
+        "GithubOauthToken": {
+            "Type": "String"
+        }
+    }, 
+    "Resources": {
+        "BuildAndDeployFunctionRole": {
+            "Type": "AWS::IAM::Role", 
+            "Properties": {
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole", 
+                    "arn:aws:iam::aws:policy/AWSCodePipelineCustomActionAccess", 
+                    "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+                ], 
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17", 
+                    "Statement": {
+                        "Action": "sts:AssumeRole", 
+                        "Effect": "Allow", 
+                        "Principal": {
+                            "Service": "lambda.amazonaws.com"
+                        }
+                    }
+                }
+            }
+        }, 
+        "ArtifactStoreBucket": {
+            "Type": "AWS::S3::Bucket", 
+            "Properties": {
+                "AccessControl": "BucketOwnerFullControl", 
+                "VersioningConfiguration": {
+                    "Status": "Enabled"
+                }
+            }
+        }, 
+        "Pipeline": {
+            "Type": "AWS::CodePipeline::Pipeline", 
+            "Properties": {
+                "RoleArn": {
+                    "Fn::GetAtt": [
+                        "PipelineRole", 
+                        "Arn"
+                    ]
+                }, 
+                "Stages": [
+                    {
+                        "Name": "source", 
+                        "Actions": [
+                            {
+                                "ActionTypeId": {
+                                    "Category": "Source", 
+                                    "Owner": "ThirdParty", 
+                                    "Version": 1, 
+                                    "Provider": "GitHub"
+                                }, 
+                                "InputArtifacts": [], 
+                                "RunOrder": 1, 
+                                "OutputArtifacts": [
+                                    {
+                                        "Name": "SourceOutput"
+                                    }
+                                ], 
+                                "Configuration": {
+                                    "Owner": "s0enke", 
+                                    "Repo": "react-boilerplate", 
+                                    "Branch": "master", 
+                                    "OAuthToken": {
+                                        "Ref": "GithubOauthToken"
+                                    }
+                                }, 
+                                "Name": "Source"
+                            }
+                        ]
+                    }, 
+                    {
+                        "Name": "pipeline_update", 
+                        "Actions": [
+                            {
+                                "ActionTypeId": {
+                                    "Category": "Invoke", 
+                                    "Owner": "AWS", 
+                                    "Version": 1, 
+                                    "Provider": "Lambda"
+                                }, 
+                                "InputArtifacts": [
+                                    {
+                                        "Name": "SourceOutput"
+                                    }
+                                ], 
+                                "RunOrder": 2, 
+                                "OutputArtifacts": [], 
+                                "Configuration": {
+                                    "FunctionName": {
+                                        "Ref": "CfnUpdateFunction"
+                                    }
+                                }, 
+                                "Name": "Lambda"
+                            }
+                        ]
+                    }, 
+                    {
+                        "Name": "build_and_deploy", 
+                        "Actions": [
+                            {
+                                "ActionTypeId": {
+                                    "Category": "Invoke", 
+                                    "Owner": "AWS", 
+                                    "Version": 1, 
+                                    "Provider": "Lambda"
+                                }, 
+                                "InputArtifacts": [
+                                    {
+                                        "Name": "SourceOutput"
+                                    }
+                                ], 
+                                "RunOrder": 2, 
+                                "OutputArtifacts": [], 
+                                "Configuration": {
+                                    "FunctionName": {
+                                        "Ref": "BuildAndDeployFunction"
+                                    }
+                                }, 
+                                "Name": "Lambda"
+                            }
+                        ]
+                    }
+                ], 
+                "ArtifactStore": {
+                    "Type": "S3", 
+                    "Location": {
+                        "Ref": "ArtifactStoreBucket"
+                    }
+                }, 
+                "Name": "react-boilerplate-ci"
+            }
+        }, 
+        "BuildAndDeployFunction": {
+            "Type": "AWS::Lambda::Function", 
+            "Properties": {
+                "Code": {
+                    "ZipFile": "var child_process = require('child_process');\nvar fs = require('fs');\nvar AWS = require('aws-sdk');\nvar util = require('util');\n\nexports.handler = function(event, context) {\n  console.log(util.inspect(event, {depth: null}));\n  var job = event['CodePipeline.job'];\n  var inputArtifactConfig = job.data.inputArtifacts[0];\n  console.log(util.inspect(inputArtifactConfig, {depth: null}));\n\n  process.env.HOME = '/tmp';\n  console.log(child_process.execSync('rm -fr /tmp/lambda_function /tmp/.npm /tmp/bin', {encoding: 'utf-8'}));\n  fs.mkdirSync('/tmp/lambda_function');\n  process.chdir('/tmp/lambda_function');\n\n\n  // install newer version of node\n  console.log(child_process.execSync('node /usr/local/lib64/node-v4.3.x/lib/node_modules/npm/bin/npm-cli.js install npm npmlog --prefix=/tmp --progress=false', {encoding: 'utf-8'}));\n\n  console.log(child_process.execSync('find /tmp/ -name npm -type f', {encoding: 'utf-8'}));\n  fs.mkdirSync('/tmp/bin');\n  fs.symlinkSync('/tmp/node_modules/npm/bin/npm-cli.js', '/tmp/bin/npm');\n  process.env.PATH = '/tmp/bin:' + process.env.PATH;\n\n\n  console.log(child_process.execSync('npm --version', {encoding: 'utf-8'}));\n  //return;\n\n  var params = {\n    Bucket: inputArtifactConfig.location.s3Location.bucketName,\n    Key: inputArtifactConfig.location.s3Location.objectKey\n  };\n  var file = fs.createWriteStream(\"/tmp/lambda_function/artifact.zip\");\n  var s3 = new AWS.S3({\"signatureVersion\":\"v4\"});\n  s3.getObject(params).createReadStream().pipe(file);\n  file.on('close', function(){\n    console.log(child_process.execSync('unzip artifact.zip', {encoding: 'utf-8'}));\n    console.log(child_process.execSync('npm install', {encoding: 'utf-8'}));\n    console.log(child_process.execSync('npm run build', {encoding: 'utf-8'}));\n    console.log(child_process.execSync('ls -al build', {encoding: 'utf-8'}));\n  });\n};\n"
+                }, 
+                "Role": {
+                    "Fn::GetAtt": [
+                        "BuildAndDeployFunctionRole", 
+                        "Arn"
+                    ]
+                }, 
+                "Timeout": 300, 
+                "Handler": "index.handler", 
+                "Runtime": "nodejs4.3", 
+                "MemorySize": 1536
+            }
+        }, 
+        "CfnUpdateFunctionRole": {
+            "Type": "AWS::IAM::Role", 
+            "Properties": {
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole", 
+                    "arn:aws:iam::aws:policy/AWSCodePipelineCustomActionAccess"
+                ], 
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17", 
+                    "Statement": {
+                        "Action": "sts:AssumeRole", 
+                        "Effect": "Allow", 
+                        "Principal": {
+                            "Service": "lambda.amazonaws.com"
+                        }
+                    }
+                }
+            }
+        }, 
+        "CfnUpdateFunction": {
+            "Type": "AWS::Lambda::Function", 
+            "Properties": {
+                "Code": {
+                    "ZipFile": "import boto3\nfrom boto3.session import Session\nimport botocore\nimport tempfile\nimport zipfile\nimport yaml\nimport json\n\ncode_pipeline = boto3.client('codepipeline')\n\ndef handler(event, context):\n\n  job = event['CodePipeline.job'];\n  job_data = job['data']\n  job_id = job['id']\n  artifact = job_data['inputArtifacts'][0];\n\n  key_id = job_data['artifactCredentials']['accessKeyId']\n  key_secret = job_data['artifactCredentials']['secretAccessKey']\n  session_token = job_data['artifactCredentials']['sessionToken']\n\n  file_in_zip = 'ci_build/infrastructure.yml'\n\n  # download artifact\n  session = Session(aws_access_key_id=key_id,\n  aws_secret_access_key=key_secret,\n  aws_session_token=session_token)\n  s3 = session.client('s3', config=botocore.client.Config(signature_version='s3v4'))\n\n  tmp_file = tempfile.NamedTemporaryFile()\n  bucket = artifact['location']['s3Location']['bucketName']\n  key = artifact['location']['s3Location']['objectKey']\n  # extract zip\n  with tempfile.NamedTemporaryFile() as tmp_file:\n    s3.download_file(bucket, key, tmp_file.name)\n    with zipfile.ZipFile(tmp_file.name, 'r') as zip:\n      cfn_template_yaml = zip.read(file_in_zip)\n  # convert to JSON\n  cfn_template_json = json.dumps(yaml.load(cfn_template_yaml))\n  print cfn_template_json\n  # apply CFN\n\n  code_pipeline.put_job_success_result(jobId=job_id)\n"
+                }, 
+                "Runtime": "python2.7", 
+                "Handler": "index.handler", 
+                "Role": {
+                    "Fn::GetAtt": [
+                        "CfnUpdateFunctionRole", 
+                        "Arn"
+                    ]
+                }, 
+                "Timeout": 300
+            }
+        }, 
+        "PipelineRole": {
+            "Type": "AWS::IAM::Role", 
+            "Properties": {
+                "Path": "/", 
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/AdministratorAccess"
+                ], 
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17", 
+                    "Statement": {
+                        "Action": "sts:AssumeRole", 
+                        "Effect": "Allow", 
+                        "Principal": {
+                            "Service": "codepipeline.amazonaws.com"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

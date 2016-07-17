@@ -174,10 +174,45 @@ Resources:
       Code:
         ZipFile: |
           import boto3
+          from boto3.session import Session
+          import botocore
+          import tempfile
+          import zipfile
+          import json
+
           code_pipeline = boto3.client('codepipeline')
 
           def handler(event, context):
-            job_id = event['CodePipeline.job']['id']
+
+            job = event['CodePipeline.job'];
+            job_data = job['data']
+            job_id = job['id']
+            artifact = job_data['inputArtifacts'][0];
+
+            key_id = job_data['artifactCredentials']['accessKeyId']
+            key_secret = job_data['artifactCredentials']['secretAccessKey']
+            session_token = job_data['artifactCredentials']['sessionToken']
+
+            file_in_zip = 'ci_build/infrastructure.json'
+
+            # download artifact
+            session = Session(aws_access_key_id=key_id,
+            aws_secret_access_key=key_secret,
+            aws_session_token=session_token)
+            s3 = session.client('s3', config=botocore.client.Config(signature_version='s3v4'))
+
+            tmp_file = tempfile.NamedTemporaryFile()
+            bucket = artifact['location']['s3Location']['bucketName']
+            key = artifact['location']['s3Location']['objectKey']
+
+            # extract zip
+            with tempfile.NamedTemporaryFile() as tmp_file:
+              s3.download_file(bucket, key, tmp_file.name)
+              with zipfile.ZipFile(tmp_file.name, 'r') as zip:
+                cfn_template_json = zip.read(file_in_zip)
+
+            # apply CFN
+
             code_pipeline.put_job_success_result(jobId=job_id)
       Handler: index.handler
       Role:
