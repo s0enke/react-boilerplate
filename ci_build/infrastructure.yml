@@ -233,7 +233,23 @@ Resources:
                 cfn_template_json = zip.read(file_in_zip)
 
             # apply CFN
-            cf.update_stack(StackName=stack_name, TemplateBody=cfn_template_json)
+            try:
+              cf.update_stack(
+                StackName=stack_name,
+                TemplateBody=cfn_template_json,
+                Parameters=[
+                  {
+                    'ParameterKey': 'GithubOauthToken',
+                    'UsePreviousValue': True,
+                  },
+                ],
+                Capabilities=[
+                  'CAPABILITY_IAM',
+                ]
+              )
+            except botocore.exceptions.ClientError as e:
+              if not "No updates are to be performed." in e.response['Error']['Message']:
+                raise e
 
             code_pipeline.put_job_success_result(jobId=job_id)
       Handler: index.handler
