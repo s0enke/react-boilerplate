@@ -4,6 +4,12 @@ Parameters:
   GithubOauthToken:
     Type: String
 Resources:
+  WebsiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: BucketOwnerFullControl
+      WebsiteConfiguration:
+        IndexDocument: index.html
   ArtifactStoreBucket:
     Type: AWS::S3::Bucket
     Properties:
