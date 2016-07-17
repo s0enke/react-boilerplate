@@ -23,6 +23,15 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
         - arn:aws:iam::aws:policy/AWSCodePipelineCustomActionAccess
+      Policies:
+        - PolicyName: StackUpdate
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - cloudformation:UpdateStack
+                Resource: "*"
   BuildAndDeployFunctionRole:
     Type: AWS::IAM::Role
     Properties:

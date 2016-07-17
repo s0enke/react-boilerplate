@@ -161,6 +161,23 @@
                     "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole", 
                     "arn:aws:iam::aws:policy/AWSCodePipelineCustomActionAccess"
                 ], 
+                "Policies": [
+                    {
+                        "PolicyName": "StackUpdate", 
+                        "PolicyDocument": {
+                            "Version": "2012-10-17", 
+                            "Statement": [
+                                {
+                                    "Action": [
+                                        "cloudformation:UpdateStack"
+                                    ], 
+                                    "Resource": "*", 
+                                    "Effect": "Allow"
+                                }
+                            ]
+                        }
+                    }
+                ], 
                 "AssumeRolePolicyDocument": {
                     "Version": "2012-10-17", 
                     "Statement": {
