@@ -91,7 +91,7 @@ Resources:
                 OAuthToken:
                   Ref: GithubOauthToken
               RunOrder: 1
-        - Name: pipeline_update
+        - Name: self_update
           Actions:
             - InputArtifacts:
                 - Name: SourceOutput
