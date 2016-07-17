@@ -125,6 +125,8 @@ Resources:
           exports.handler = function(event, context) {
             console.log(util.inspect(event, {depth: null}));
             var job = event['CodePipeline.job'];
+            var jobId = job.id;
+
             var inputArtifactConfig = job.data.inputArtifacts[0];
             console.log(util.inspect(inputArtifactConfig, {depth: null}));
 
@@ -158,6 +160,14 @@ Resources:
               console.log(child_process.execSync('npm install', {encoding: 'utf-8'}));
               console.log(child_process.execSync('npm run build', {encoding: 'utf-8'}));
               console.log(child_process.execSync('ls -al build', {encoding: 'utf-8'}));
+            });
+
+            codepipeline.putJobSuccessResult({ jobId: jobId }, function(err, data) {
+              if(err) {
+                  context.fail(err);
+              } else {
+                  context.succeed(message);
+              }
             });
           };
       Handler: index.handler
