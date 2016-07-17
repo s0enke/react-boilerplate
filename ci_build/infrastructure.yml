@@ -224,7 +224,7 @@ Resources:
                 cfn_template_json = zip.read(file_in_zip)
 
             # apply CFN
-           cf.update_stack(StackName=stack_name, TemplateBody=cfn_template_json)
+            cf.update_stack(StackName=stack_name, TemplateBody=cfn_template_json)
 
             code_pipeline.put_job_success_result(jobId=job_id)
       Handler: index.handler
