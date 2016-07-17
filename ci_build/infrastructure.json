@@ -9,7 +9,7 @@
         "WebsiteBucket": {
             "Type": "AWS::S3::Bucket", 
             "Properties": {
-                "AccessControl": "BucketOwnerFullControl", 
+                "AccessControl": "PublicRead", 
                 "WebsiteConfiguration": {
                     "IndexDocument": "index.html"
                 }
