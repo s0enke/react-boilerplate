@@ -1,5 +1,0 @@
-lambdas:
-  ci_build:
-    code: . 
-    handler: ci_build.handler
-    runtime: python2.7
