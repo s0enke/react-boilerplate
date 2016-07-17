@@ -112,7 +112,8 @@ Resources:
                 Owner: AWS
                 Version: 1
                 Provider: Lambda
-              OutputArtifacts: []
+              OutputArtifacts:
+                - Name: Build
               Configuration:
                 FunctionName:
                   Ref: BuildAndDeployFunction
@@ -133,6 +134,7 @@ Resources:
             var jobId = job.id;
 
             var inputArtifactConfig = job.data.inputArtifacts[0];
+            var outputArtifactConfig = job.data.outputArtifacts[0];
             console.log(util.inspect(inputArtifactConfig, {depth: null}));
 
             process.env.HOME = '/tmp';
@@ -165,6 +167,7 @@ Resources:
               console.log(child_process.execSync('npm install', {encoding: 'utf-8'}));
               console.log(child_process.execSync('npm run build', {encoding: 'utf-8'}));
               console.log(child_process.execSync('ls -al build', {encoding: 'utf-8'}));
+              console.log(child_process.execSync('tar xfz build.tgz build/', {encoding: 'utf-8'}));
             });
 
             var codepipeline = new AWS.CodePipeline();
