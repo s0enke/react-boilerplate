@@ -181,6 +181,7 @@ Resources:
           import json
 
           code_pipeline = boto3.client('codepipeline')
+          cf = boto3.client('cloudformation')
 
           def handler(event, context):
 
@@ -193,6 +194,7 @@ Resources:
             key_secret = job_data['artifactCredentials']['secretAccessKey']
             session_token = job_data['artifactCredentials']['sessionToken']
 
+            stack_name = 'react-boilerplate-ci-infrastructure'
             file_in_zip = 'ci_build/infrastructure.json'
 
             # download artifact
@@ -212,6 +214,7 @@ Resources:
                 cfn_template_json = zip.read(file_in_zip)
 
             # apply CFN
+           cf.update_stack(StackName=stack_name, TemplateBody=cfn_template_json)
 
             code_pipeline.put_job_success_result(jobId=job_id)
       Handler: index.handler
