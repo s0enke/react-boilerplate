@@ -21,19 +21,7 @@ Resources:
             Service: lambda.amazonaws.com
           Action: sts:AssumeRole
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-        - arn:aws:iam::aws:policy/AWSCodePipelineCustomActionAccess
-        - arn:aws:iam::aws:policy/IAMReadOnlyAccess
-        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
-      Policies:
-        - PolicyName: StackUpdate
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - cloudformation:UpdateStack
-                Resource: "*"
+        - arn:aws:iam::aws:policy/AdministratorAccess
   BuildAndDeployFunctionRole:
     Type: AWS::IAM::Role
     Properties:
