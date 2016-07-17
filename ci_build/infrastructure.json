@@ -160,7 +160,8 @@
                 "ManagedPolicyArns": [
                     "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole", 
                     "arn:aws:iam::aws:policy/AWSCodePipelineCustomActionAccess", 
-                    "arn:aws:iam::aws:policy/IAMReadOnlyAccess"
+                    "arn:aws:iam::aws:policy/IAMReadOnlyAccess", 
+                    "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
                 ], 
                 "Policies": [
                     {
