@@ -135,7 +135,7 @@ Resources:
 
             var inputArtifactConfig = job.data.inputArtifacts[0];
             var outputArtifactConfig = job.data.outputArtifacts[0];
-            console.log(util.inspect(inputArtifactConfig, {depth: null}));
+            console.log(util.inspect(outputArtifactConfig, {depth: null}));
 
             process.env.HOME = '/tmp';
             console.log(child_process.execSync('rm -fr /tmp/lambda_function /tmp/.npm /tmp/bin', {encoding: 'utf-8'}));
@@ -167,6 +167,8 @@ Resources:
               console.log(child_process.execSync('npm install', {encoding: 'utf-8'}));
               console.log(child_process.execSync('npm run build', {encoding: 'utf-8'}));
               console.log(child_process.execSync('tar vcfz build.tgz build/', {encoding: 'utf-8'}));
+
+              var s3Uploader = new AWS.S3({"signatureVersion":"v4"});
 
               var codepipeline = new AWS.CodePipeline();
               codepipeline.putJobSuccessResult({ jobId: jobId }, function(err, data) {
