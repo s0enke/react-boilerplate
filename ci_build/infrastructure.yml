@@ -144,7 +144,7 @@ Resources:
 
 
             // install newer version of node
-            console.log(child_process.execSync('node /usr/local/lib64/node-v4.3.x/lib/node_modules/npm/bin/npm-cli.js install npm npmlog --prefix=/tmp --progress=false', {encoding: 'utf-8'}));
+            console.log(child_process.execSync('node /usr/local/lib64/node-v4.3.x/lib/node_modules/npm/bin/npm-cli.js install npm --prefix=/tmp --progress=false', {encoding: 'utf-8'}));
 
             console.log(child_process.execSync('find /tmp/ -name npm -type f', {encoding: 'utf-8'}));
             fs.mkdirSync('/tmp/bin');
