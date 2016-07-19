@@ -175,7 +175,7 @@ Resources:
                 } else {
                     context.succeed();
                 }
-            });
+              });
             });
           };
       Handler: index.handler
