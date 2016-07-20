@@ -170,15 +170,30 @@ Resources:
 
               var s3Uploader = new AWS.S3({"signatureVersion":"v4"});
 
-              var codepipeline = new AWS.CodePipeline();
-              codepipeline.putJobSuccessResult({ jobId: jobId }, function(err, data) {
-                if(err) {
-                    context.fail(err);
-                } else {
-                    context.succeed();
+              var uploadParams = {
+                Bucket: outputArtifactConfig.location.s3Location.bucketName,
+                Key: outputArtifactConfig.location.s3Location.objectKey
+                Body: fs.createReadStream('build.tgz')
+              };
+
+              s3Uploader.putObject(
+                uploadParams,
+                function(err, data) {
+                  if(err) {
+                      context.fail(err);
+                  } else {
+                    var codepipeline = new AWS.CodePipeline();
+                    codepipeline.putJobSuccessResult({ jobId: jobId }, function(err, data) {
+                      if(err) {
+                          context.fail(err);
+                      } else {
+                          context.succeed();
+                      }
+                    });
+                  }
                 }
-              });
-            });
+              );
+            }
           };
       Handler: index.handler
       Role:
