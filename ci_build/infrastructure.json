@@ -157,6 +157,53 @@
                 }
             }
         }, 
+        "DeployFunctionRole": {
+            "Type": "AWS::IAM::Role", 
+            "Properties": {
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole", 
+                    "arn:aws:iam::aws:policy/AWSCodePipelineCustomActionAccess"
+                ], 
+                "Policies": [
+                    {
+                        "PolicyName": "WriteAccessToDeployBucket", 
+                        "PolicyDocument": {
+                            "Version": "2012-10-17", 
+                            "Statement": [
+                                {
+                                    "Action": [
+                                        "s3:PutObject"
+                                    ], 
+                                    "Resource": {
+                                        "Fn::Join": [
+                                            "", 
+                                            [
+                                                "arn:", 
+                                                {
+                                                    "Ref": "WebsiteBucket"
+                                                }, 
+                                                "*"
+                                            ]
+                                        ]
+                                    }, 
+                                    "Effect": "Allow"
+                                }
+                            ]
+                        }
+                    }
+                ], 
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17", 
+                    "Statement": {
+                        "Action": "sts:AssumeRole", 
+                        "Effect": "Allow", 
+                        "Principal": {
+                            "Service": "lambda.amazonaws.com"
+                        }
+                    }
+                }
+            }
+        }, 
         "ArtifactStoreBucket": {
             "Type": "AWS::S3::Bucket", 
             "Properties": {
@@ -218,6 +265,23 @@
                         }
                     }
                 }
+            }
+        }, 
+        "DeployFunction": {
+            "Type": "AWS::Lambda::Function", 
+            "Properties": {
+                "Code": {
+                    "ZipFile": "import boto3\nfrom boto3.session import Session\nimport botocore\nimport tempfile\nimport zipfile\nimport json\n\ncode_pipeline = boto3.client('codepipeline')\ncf = boto3.client('cloudformation')\n\ndef handler(event, context):\n\n  job = event['CodePipeline.job'];\n  job_data = job['data']\n  job_id = job['id']\n  artifact = job_data['inputArtifacts'][0];\n\n  key_id = job_data['artifactCredentials']['accessKeyId']\n  key_secret = job_data['artifactCredentials']['secretAccessKey']\n  session_token = job_data['artifactCredentials']['sessionToken']\n\n  # download artifact\n  session = Session(aws_access_key_id=key_id,\n  aws_secret_access_key=key_secret,\n  aws_session_token=session_token)\n  s3 = session.client('s3', config=botocore.client.Config(signature_version='s3v4'))\n\n  tmp_file = tempfile.NamedTemporaryFile()\n  bucket = artifact['location']['s3Location']['bucketName']\n  key = artifact['location']['s3Location']['objectKey']\n\n  # extract zip\n  with tempfile.NamedTemporaryFile() as tmp_file:\n    s3.download_file(bucket, key, tmp_file.name)\n"
+                }, 
+                "Runtime": "python2.7", 
+                "Handler": "index.handler", 
+                "Role": {
+                    "Fn::GetAtt": [
+                        "DeployFunctionRole", 
+                        "Arn"
+                    ]
+                }, 
+                "Timeout": 300
             }
         }
     }

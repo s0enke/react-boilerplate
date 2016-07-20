@@ -41,6 +41,33 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
         - arn:aws:iam::aws:policy/AWSCodePipelineCustomActionAccess
+  DeployFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AWSCodePipelineCustomActionAccess
+      Policies:
+        - PolicyName: WriteAccessToDeployBucket
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                Resource:
+                  Fn::Join:
+                    - ""
+                    - - "arn:"
+                      - Ref: WebsiteBucket
+                      - "*"
   PipelineRole:
     Type: AWS::IAM::Role
     Properties:
@@ -209,6 +236,52 @@ Resources:
       Runtime: nodejs4.3
       Timeout: 300
       MemorySize: 1536
+  DeployFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: |
+          import boto3
+          from boto3.session import Session
+          import botocore
+          import tempfile
+          import zipfile
+          import json
+
+          code_pipeline = boto3.client('codepipeline')
+          cf = boto3.client('cloudformation')
+
+          def handler(event, context):
+
+            job = event['CodePipeline.job'];
+            job_data = job['data']
+            job_id = job['id']
+            artifact = job_data['inputArtifacts'][0];
+
+            key_id = job_data['artifactCredentials']['accessKeyId']
+            key_secret = job_data['artifactCredentials']['secretAccessKey']
+            session_token = job_data['artifactCredentials']['sessionToken']
+
+            # download artifact
+            session = Session(aws_access_key_id=key_id,
+            aws_secret_access_key=key_secret,
+            aws_session_token=session_token)
+            s3 = session.client('s3', config=botocore.client.Config(signature_version='s3v4'))
+
+            tmp_file = tempfile.NamedTemporaryFile()
+            bucket = artifact['location']['s3Location']['bucketName']
+            key = artifact['location']['s3Location']['objectKey']
+
+            # extract zip
+            with tempfile.NamedTemporaryFile() as tmp_file:
+              s3.download_file(bucket, key, tmp_file.name)
+      Handler: index.handler
+      Role:
+        Fn::GetAtt:
+          - DeployFunctionRole
+          - Arn
+      Runtime: python2.7
+      Timeout: 300
   CfnUpdateFunction:
     Type: AWS::Lambda::Function
     Properties:
