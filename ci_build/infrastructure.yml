@@ -178,7 +178,8 @@ Resources:
               var uploadParams = {
                 Bucket: outputArtifactConfig.location.s3Location.bucketName,
                 Key: outputArtifactConfig.location.s3Location.objectKey,
-                Body: fs.createReadStream('build.tgz')
+                Body: fs.createReadStream('build.tgz'),
+                ServerSideEncryption: "aws:kms"
               };
 
               s3.putObject(
