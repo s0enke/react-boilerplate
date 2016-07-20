@@ -172,7 +172,7 @@ Resources:
 
               var uploadParams = {
                 Bucket: outputArtifactConfig.location.s3Location.bucketName,
-                Key: outputArtifactConfig.location.s3Location.objectKey
+                Key: outputArtifactConfig.location.s3Location.objectKey,
                 Body: fs.createReadStream('build.tgz')
               };
 
@@ -193,7 +193,7 @@ Resources:
                   }
                 }
               );
-            }
+            });
           };
       Handler: index.handler
       Role:
