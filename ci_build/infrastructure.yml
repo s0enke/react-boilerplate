@@ -41,7 +41,6 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
         - arn:aws:iam::aws:policy/AWSCodePipelineCustomActionAccess
-        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
   PipelineRole:
     Type: AWS::IAM::Role
     Properties:
@@ -160,7 +159,15 @@ Resources:
               Key: inputArtifactConfig.location.s3Location.objectKey
             };
             var file = fs.createWriteStream("/tmp/lambda_function/artifact.zip");
-            var s3 = new AWS.S3({"signatureVersion":"v4"});
+
+            var artifactCredentials = job.data.artifactCredentials;
+            var s3 = new AWS.S3({
+              "signatureVersion":"v4",
+              "accessKeyId": artifactCredentials.accessKeyId,
+              "secretAccessKey": artifactCredentials.secretAccessKey,
+              "sessionToken": artifactCredentials.sessionToken
+            });
+
             s3.getObject(params).createReadStream().pipe(file);
             file.on('close', function(){
               console.log(child_process.execSync('unzip artifact.zip', {encoding: 'utf-8'}));
@@ -168,15 +175,13 @@ Resources:
               console.log(child_process.execSync('npm run build', {encoding: 'utf-8'}));
               console.log(child_process.execSync('tar vcfz build.tgz build/', {encoding: 'utf-8'}));
 
-              var s3Uploader = new AWS.S3({"signatureVersion":"v4"});
-
               var uploadParams = {
                 Bucket: outputArtifactConfig.location.s3Location.bucketName,
                 Key: outputArtifactConfig.location.s3Location.objectKey,
                 Body: fs.createReadStream('build.tgz')
               };
 
-              s3Uploader.putObject(
+              s3.putObject(
                 uploadParams,
                 function(err, data) {
                   if(err) {
