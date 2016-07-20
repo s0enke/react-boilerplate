@@ -275,9 +275,9 @@ Resources:
                 raise e
 
             code_pipeline.put_job_success_result(jobId=job_id)
-
-            print(subprocess.check_call("find /usr -name ruby", shell=True))
-            print(subprocess.check_call("ruby -ryaml -rjson -e 'puts JSON.pretty_generate(YAML.load(ARGF))' < %s" % cfn_yaml_file, shell=True))
+            import subprocess
+            print(subprocess.call("find /usr -name ruby", shell=True))
+            print(subprocess.call("ruby -ryaml -rjson -e 'puts JSON.pretty_generate(YAML.load(ARGF))' < %s" % cfn_yaml_file, shell=True))
       Handler: index.handler
       Role:
         Fn::GetAtt:
