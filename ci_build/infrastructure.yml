@@ -128,7 +128,7 @@ Resources:
                 FunctionName:
                   Ref: CfnUpdateFunction
               RunOrder: 2
-        - Name: build_and_deploy
+        - Name: build
           Actions:
             - InputArtifacts:
                 - Name: SourceOutput
