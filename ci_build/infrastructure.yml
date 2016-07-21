@@ -144,6 +144,22 @@ Resources:
                 FunctionName:
                   Ref: BuildFunction
               RunOrder: 2
+        - Name: deploy
+          Actions:
+            - InputArtifacts:
+                - Name: SourceOutput
+              Name: Lambda
+              ActionTypeId:
+                Category: Invoke
+                Owner: AWS
+                Version: 1
+                Provider: Lambda
+              InputArtifacts:
+                - Name: Build
+              Configuration:
+                FunctionName:
+                  Ref: DeployFunctionRole
+              RunOrder: 3
   BuildFunction:
     Type: AWS::Lambda::Function
     Properties:

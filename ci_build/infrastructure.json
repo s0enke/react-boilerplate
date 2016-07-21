@@ -109,6 +109,31 @@
                                 "Name": "Lambda"
                             }
                         ]
+                    }, 
+                    {
+                        "Name": "deploy", 
+                        "Actions": [
+                            {
+                                "ActionTypeId": {
+                                    "Category": "Invoke", 
+                                    "Owner": "AWS", 
+                                    "Version": 1, 
+                                    "Provider": "Lambda"
+                                }, 
+                                "InputArtifacts": [
+                                    {
+                                        "Name": "Build"
+                                    }
+                                ], 
+                                "Name": "Lambda", 
+                                "Configuration": {
+                                    "FunctionName": {
+                                        "Ref": "DeployFunctionRole"
+                                    }
+                                }, 
+                                "RunOrder": 3
+                            }
+                        ]
                     }
                 ], 
                 "ArtifactStore": {
