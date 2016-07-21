@@ -178,11 +178,11 @@
                                         "Fn::Join": [
                                             "", 
                                             [
-                                                "arn:", 
+                                                "arn:aws:s3:::", 
                                                 {
                                                     "Ref": "WebsiteBucket"
                                                 }, 
-                                                "*"
+                                                ":*"
                                             ]
                                         ]
                                     }, 
