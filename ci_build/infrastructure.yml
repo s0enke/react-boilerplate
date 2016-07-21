@@ -216,7 +216,7 @@ Resources:
               console.log(child_process.execSync('unzip artifact.zip', {encoding: 'utf-8'}));
               console.log(child_process.execSync('npm install', {encoding: 'utf-8'}));
               console.log(child_process.execSync('npm run build', {encoding: 'utf-8'}));
-              console.log(child_process.execSync('cd build && tar vcfz ../build.tgz .', {encoding: 'utf-8'}));
+              console.log(child_process.execSync('cd build && tar vcfz ../build.tgz *', {encoding: 'utf-8'}));
 
               var uploadParams = {
                 Bucket: outputArtifactConfig.location.s3Location.bucketName,
@@ -261,11 +261,10 @@ Resources:
           from boto3.session import Session
           import botocore
           import tempfile
-          import zipfile
+          import tarfile
           import json
 
           code_pipeline = boto3.client('codepipeline')
-          cf = boto3.client('cloudformation')
 
           def handler(event, context):
 
@@ -279,25 +278,32 @@ Resources:
             session_token = job_data['artifactCredentials']['sessionToken']
 
             # download artifact
-            session = Session(aws_access_key_id=key_id,
-            aws_secret_access_key=key_secret,
-            aws_session_token=session_token)
+            session = Session(
+              aws_access_key_id=key_id,
+              aws_secret_access_key=key_secret,
+              aws_session_token=session_token
+            )
             s3 = session.client('s3', config=botocore.client.Config(signature_version='s3v4'))
 
             tmp_file = tempfile.NamedTemporaryFile()
             bucket = artifact['location']['s3Location']['bucketName']
             key = artifact['location']['s3Location']['objectKey']
 
-            with tempfile.NamedTemporaryFile() as tmp_file:
-              s3.download_file(bucket, key, tmp_file.name)
+            res = s3.download_file(bucket, key, tmp_file.name)
 
             # upload to website bucket
-            s3_uploader = s3.Bucket('react-boilerplate-ci-infrastructure-websitebucket-1qczax4dhsmdh')
-            zip = zipfile.ZipFile(tmp_file.name)
-            zip.printdir()
-            for name in zz.namelist():
-              print '%s:' % (name)
-              zip.close()
+            s3_bucket = boto3.resource('s3').Bucket('react-boilerplate-ci-infrastructure-websitebucket-1qczax4dhsmdh')
+            tar = tarfile.open(tmp_file.name, 'r')
+            for file_in_tar in tar.getmembers():
+              s3_bucket.put_object(
+                Key=file_in_tar.name,
+                Body=tar.extractfile(file_in_tar)
+              )
+
+            zip.close()
+
+            # return success
+            code_pipeline.put_job_success_result(jobId=job_id)
       Handler: index.handler
       Role:
         Fn::GetAtt:
