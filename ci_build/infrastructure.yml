@@ -158,7 +158,7 @@ Resources:
                 - Name: Build
               Configuration:
                 FunctionName:
-                  Ref: DeployFunctionRole
+                  Ref: DeployFunction
               RunOrder: 3
   BuildFunction:
     Type: AWS::Lambda::Function

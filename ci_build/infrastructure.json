@@ -128,7 +128,7 @@
                                 "Name": "Lambda", 
                                 "Configuration": {
                                     "FunctionName": {
-                                        "Ref": "DeployFunctionRole"
+                                        "Ref": "DeployFunction"
                                     }
                                 }, 
                                 "RunOrder": 3
