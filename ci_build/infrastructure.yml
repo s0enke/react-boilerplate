@@ -216,7 +216,7 @@ Resources:
               console.log(child_process.execSync('unzip artifact.zip', {encoding: 'utf-8'}));
               console.log(child_process.execSync('npm install', {encoding: 'utf-8'}));
               console.log(child_process.execSync('npm run build', {encoding: 'utf-8'}));
-              console.log(child_process.execSync('tar vcfz build.tgz build/', {encoding: 'utf-8'}));
+              console.log(child_process.execSync('cd build && tar vcfz ../build.tgz .', {encoding: 'utf-8'}));
 
               var uploadParams = {
                 Bucket: outputArtifactConfig.location.s3Location.bucketName,
@@ -288,9 +288,16 @@ Resources:
             bucket = artifact['location']['s3Location']['bucketName']
             key = artifact['location']['s3Location']['objectKey']
 
-            # extract zip
             with tempfile.NamedTemporaryFile() as tmp_file:
               s3.download_file(bucket, key, tmp_file.name)
+
+            # upload to website bucket
+            s3_uploader = s3.Bucket('react-boilerplate-ci-infrastructure-websitebucket-1qczax4dhsmdh')
+            zip = zipfile.ZipFile(tmp_file.name)
+            zip.printdir()
+            for name in zz.namelist():
+              print '%s:' % (name)
+              zip.close()
       Handler: index.handler
       Role:
         Fn::GetAtt:
