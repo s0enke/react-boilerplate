@@ -55,7 +55,7 @@
                         ]
                     }, 
                     {
-                        "Name": "Infrastructure Update and Build", 
+                        "Name": "InfrastructureUpdateAndBuild", 
                         "Actions": [
                             {
                                 "ActionTypeId": {
@@ -76,7 +76,7 @@
                                         "Ref": "CfnUpdateFunction"
                                     }
                                 }, 
-                                "Name": "Update Infrastructure"
+                                "Name": "UpdateInfrastructure"
                             }, 
                             {
                                 "ActionTypeId": {
@@ -101,12 +101,12 @@
                                         "Ref": "BuildFunction"
                                     }
                                 }, 
-                                "Name": "Build static website"
+                                "Name": "BuildStaticWebsite"
                             }
                         ]
                     }, 
                     {
-                        "Name": "deploy", 
+                        "Name": "Deploy", 
                         "Actions": [
                             {
                                 "ActionTypeId": {
@@ -120,7 +120,7 @@
                                         "Name": "Build"
                                     }
                                 ], 
-                                "Name": "Deploy static website", 
+                                "Name": "DeployStaticWebsite", 
                                 "Configuration": {
                                     "FunctionName": {
                                         "Ref": "DeployFunction"
@@ -291,7 +291,7 @@
             "Type": "AWS::Lambda::Function", 
             "Properties": {
                 "Code": {
-                    "ZipFile": "import boto3\nfrom boto3.session import Session\nimport botocore\nimport tempfile\nimport tarfile\nimport json\n\ncode_pipeline = boto3.client('codepipeline')\n\ndef handler(event, context):\n\n  job = event['CodePipeline.job'];\n  job_data = job['data']\n  job_id = job['id']\n  artifact = job_data['inputArtifacts'][0];\n\n  key_id = job_data['artifactCredentials']['accessKeyId']\n  key_secret = job_data['artifactCredentials']['secretAccessKey']\n  session_token = job_data['artifactCredentials']['sessionToken']\n\n  # download artifact\n  session = Session(\n    aws_access_key_id=key_id,\n    aws_secret_access_key=key_secret,\n    aws_session_token=session_token\n  )\n  s3 = session.client('s3', config=botocore.client.Config(signature_version='s3v4'))\n\n  tmp_file = tempfile.NamedTemporaryFile()\n  bucket = artifact['location']['s3Location']['bucketName']\n  key = artifact['location']['s3Location']['objectKey']\n\n  res = s3.download_file(bucket, key, tmp_file.name)\n\n  # upload to website bucket\n  s3_bucket = boto3.resource('s3').Bucket('react-boilerplate-ci-infrastructure-websitebucket-1qczax4dhsmdh')\n  tar = tarfile.open(tmp_file.name, 'r')\n  for file_in_tar in tar:\n    s3_bucket.put_object(\n      print(file_in_tar)\n      print(tar.extractfile(file_in_tar))\n      Key=file_in_tar.name,\n      Body=tar.extractfile(file_in_tar)\n    )\n\n  zip.close()\n\n  # return success\n  code_pipeline.put_job_success_result(jobId=job_id)\n"
+                    "ZipFile": "import boto3\nfrom boto3.session import Session\nimport botocore\nimport tempfile\nimport tarfile\nimport json\n\ncode_pipeline = boto3.client('codepipeline')\n\ndef handler(event, context):\n\n  job = event['CodePipeline.job'];\n  job_data = job['data']\n  job_id = job['id']\n  artifact = job_data['inputArtifacts'][0];\n\n  key_id = job_data['artifactCredentials']['accessKeyId']\n  key_secret = job_data['artifactCredentials']['secretAccessKey']\n  session_token = job_data['artifactCredentials']['sessionToken']\n\n  # download artifact\n  session = Session(\n    aws_access_key_id=key_id,\n    aws_secret_access_key=key_secret,\n    aws_session_token=session_token\n  )\n  s3 = session.client('s3', config=botocore.client.Config(signature_version='s3v4'))\n\n  tmp_file = tempfile.NamedTemporaryFile()\n  bucket = artifact['location']['s3Location']['bucketName']\n  key = artifact['location']['s3Location']['objectKey']\n\n  res = s3.download_file(bucket, key, tmp_file.name)\n\n  # upload to website bucket\n  s3_bucket = boto3.resource('s3').Bucket('react-boilerplate-ci-infrastructure-websitebucket-1qczax4dhsmdh')\n  tar = tarfile.open(tmp_file.name, 'r')\n  for file_in_tar in tar:\n    print(file_in_tar)\n    print(tar.extractfile(file_in_tar))\n    s3_bucket.put_object(\n      Key=file_in_tar.name,\n      Body=tar.extractfile(file_in_tar)\n    )\n\n  zip.close()\n\n  # return success\n  code_pipeline.put_job_success_result(jobId=job_id)\n"
                 }, 
                 "Runtime": "python2.7", 
                 "Handler": "index.handler", 

@@ -113,11 +113,11 @@ Resources:
                 OAuthToken:
                   Ref: GithubOauthToken
               RunOrder: 1
-        - Name: Infrastructure Update and Build
+        - Name: InfrastructureUpdateAndBuild
           Actions:
             - InputArtifacts:
                 - Name: SourceOutput
-              Name: Update Infrastructure
+              Name: UpdateInfrastructure
               ActionTypeId:
                 Category: Invoke
                 Owner: AWS
@@ -130,7 +130,7 @@ Resources:
               RunOrder: 1
             - InputArtifacts:
                 - Name: SourceOutput
-              Name: Build static website
+              Name: BuildStaticWebsite
               ActionTypeId:
                 Category: Invoke
                 Owner: AWS
@@ -142,11 +142,11 @@ Resources:
                 FunctionName:
                   Ref: BuildFunction
               RunOrder: 1
-        - Name: deploy
+        - Name: Deploy
           Actions:
             - InputArtifacts:
                 - Name: SourceOutput
-              Name: Deploy static website
+              Name: DeployStaticWebsite
               ActionTypeId:
                 Category: Invoke
                 Owner: AWS
@@ -293,9 +293,9 @@ Resources:
             s3_bucket = boto3.resource('s3').Bucket('react-boilerplate-ci-infrastructure-websitebucket-1qczax4dhsmdh')
             tar = tarfile.open(tmp_file.name, 'r')
             for file_in_tar in tar:
+              print(file_in_tar)
+              print(tar.extractfile(file_in_tar))
               s3_bucket.put_object(
-                print(file_in_tar)
-                print(tar.extractfile(file_in_tar))
                 Key=file_in_tar.name,
                 Body=tar.extractfile(file_in_tar)
               )
