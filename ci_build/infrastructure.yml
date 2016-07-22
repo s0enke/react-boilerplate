@@ -316,7 +316,7 @@ Resources:
               s3_bucket.put_object(
                 Key=file_in_tar.name,
                 Body=tar.extractfile(file_in_tar),
-                ContentType=mimetypes.guess_type(file_in_tar.name)
+                ContentType=mimetypes.guess_type(file_in_tar.name)[0]
               )
 
             # return success
