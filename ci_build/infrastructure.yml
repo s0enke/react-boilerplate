@@ -113,11 +113,11 @@ Resources:
                 OAuthToken:
                   Ref: GithubOauthToken
               RunOrder: 1
-        - Name: self_update
+        - Name: Infrastructure Update and Build
           Actions:
             - InputArtifacts:
                 - Name: SourceOutput
-              Name: Lambda
+              Name: Update Infrastructure
               ActionTypeId:
                 Category: Invoke
                 Owner: AWS
@@ -127,12 +127,10 @@ Resources:
               Configuration:
                 FunctionName:
                   Ref: CfnUpdateFunction
-              RunOrder: 2
-        - Name: build
-          Actions:
+              RunOrder: 1
             - InputArtifacts:
                 - Name: SourceOutput
-              Name: Lambda
+              Name: Build static website
               ActionTypeId:
                 Category: Invoke
                 Owner: AWS
@@ -143,12 +141,12 @@ Resources:
               Configuration:
                 FunctionName:
                   Ref: BuildFunction
-              RunOrder: 2
+              RunOrder: 1
         - Name: deploy
           Actions:
             - InputArtifacts:
                 - Name: SourceOutput
-              Name: Lambda
+              Name: Deploy static website
               ActionTypeId:
                 Category: Invoke
                 Owner: AWS
@@ -159,7 +157,7 @@ Resources:
               Configuration:
                 FunctionName:
                   Ref: DeployFunction
-              RunOrder: 3
+              RunOrder: 1
   BuildFunction:
     Type: AWS::Lambda::Function
     Properties:

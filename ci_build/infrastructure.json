@@ -55,7 +55,7 @@
                         ]
                     }, 
                     {
-                        "Name": "self_update", 
+                        "Name": "Infrastructure Update and Build", 
                         "Actions": [
                             {
                                 "ActionTypeId": {
@@ -69,20 +69,15 @@
                                         "Name": "SourceOutput"
                                     }
                                 ], 
-                                "RunOrder": 2, 
+                                "RunOrder": 1, 
                                 "OutputArtifacts": [], 
                                 "Configuration": {
                                     "FunctionName": {
                                         "Ref": "CfnUpdateFunction"
                                     }
                                 }, 
-                                "Name": "Lambda"
-                            }
-                        ]
-                    }, 
-                    {
-                        "Name": "build", 
-                        "Actions": [
+                                "Name": "Update Infrastructure"
+                            }, 
                             {
                                 "ActionTypeId": {
                                     "Category": "Invoke", 
@@ -95,7 +90,7 @@
                                         "Name": "SourceOutput"
                                     }
                                 ], 
-                                "RunOrder": 2, 
+                                "RunOrder": 1, 
                                 "OutputArtifacts": [
                                     {
                                         "Name": "Build"
@@ -106,7 +101,7 @@
                                         "Ref": "BuildFunction"
                                     }
                                 }, 
-                                "Name": "Lambda"
+                                "Name": "Build static website"
                             }
                         ]
                     }, 
@@ -125,13 +120,13 @@
                                         "Name": "Build"
                                     }
                                 ], 
-                                "Name": "Lambda", 
+                                "Name": "Deploy static website", 
                                 "Configuration": {
                                     "FunctionName": {
                                         "Ref": "DeployFunction"
                                     }
                                 }, 
-                                "RunOrder": 3
+                                "RunOrder": 1
                             }
                         ]
                     }
