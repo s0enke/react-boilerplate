@@ -15,18 +15,18 @@ Resources:
     Properties:
       Bucket:
         Ref: WebsiteBucket
-        PolicyDocument:
-          Version: "2012-10-17"
-          Statement:
-            Effect: Allow
-            Principal: "*"
-            Action: s3:GetObject
-            Resource: 
-              Fn::Join:
-                - ""
-                - - "arn:aws:s3:::"
-                  - Ref: WebsiteBucket
-                  - "/*"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          Effect: Allow
+          Principal: "*"
+          Action: s3:GetObject
+          Resource: 
+            Fn::Join:
+              - ""
+              - - "arn:aws:s3:::"
+                - Ref: WebsiteBucket
+                - "/*"
   ArtifactStoreBucket:
     Type: AWS::S3::Bucket
     Properties:

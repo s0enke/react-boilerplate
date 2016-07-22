@@ -18,27 +18,27 @@
         "WebsiteBucketPolicy": {
             "Type": "AWS::S3::BucketPolicy", 
             "Properties": {
-                "Bucket": {
-                    "PolicyDocument": {
-                        "Version": "2012-10-17", 
-                        "Statement": {
-                            "Action": "s3:GetObject", 
-                            "Resource": {
-                                "Fn::Join": [
-                                    "", 
-                                    [
-                                        "arn:aws:s3:::", 
-                                        {
-                                            "Ref": "WebsiteBucket"
-                                        }, 
-                                        "/*"
-                                    ]
+                "PolicyDocument": {
+                    "Version": "2012-10-17", 
+                    "Statement": {
+                        "Action": "s3:GetObject", 
+                        "Resource": {
+                            "Fn::Join": [
+                                "", 
+                                [
+                                    "arn:aws:s3:::", 
+                                    {
+                                        "Ref": "WebsiteBucket"
+                                    }, 
+                                    "/*"
                                 ]
-                            }, 
-                            "Effect": "Allow", 
-                            "Principal": "*"
-                        }
-                    }, 
+                            ]
+                        }, 
+                        "Effect": "Allow", 
+                        "Principal": "*"
+                    }
+                }, 
+                "Bucket": {
                     "Ref": "WebsiteBucket"
                 }
             }
