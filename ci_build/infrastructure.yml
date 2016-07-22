@@ -295,6 +295,8 @@ Resources:
             for file_in_tar in tar:
               print(file_in_tar)
               print(tar.extractfile(file_in_tar))
+              if not file_in_tar.isfile():
+                continue
               s3_bucket.put_object(
                 Key=file_in_tar.name,
                 Body=tar.extractfile(file_in_tar)
