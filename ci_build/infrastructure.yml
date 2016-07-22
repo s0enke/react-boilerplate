@@ -292,8 +292,10 @@ Resources:
             # upload to website bucket
             s3_bucket = boto3.resource('s3').Bucket('react-boilerplate-ci-infrastructure-websitebucket-1qczax4dhsmdh')
             tar = tarfile.open(tmp_file.name, 'r')
-            for file_in_tar in tar.getmembers():
+            for file_in_tar in tar:
               s3_bucket.put_object(
+                print(file_in_tar)
+                print(tar.extractfile(file_in_tar))
                 Key=file_in_tar.name,
                 Body=tar.extractfile(file_in_tar)
               )
