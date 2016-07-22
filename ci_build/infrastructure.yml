@@ -67,7 +67,7 @@ Resources:
                     - ""
                     - - "arn:aws:s3:::"
                       - Ref: WebsiteBucket
-                      - ":*"
+                      - "/*"
   PipelineRole:
     Type: AWS::IAM::Role
     Properties:
