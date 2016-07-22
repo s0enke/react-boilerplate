@@ -310,8 +310,6 @@ Resources:
             s3_bucket = boto3.resource('s3').Bucket('react-boilerplate-ci-infrastructure-websitebucket-1qczax4dhsmdh')
             tar = tarfile.open(tmp_file.name, 'r')
             for file_in_tar in tar:
-              print(file_in_tar)
-              print(tar.extractfile(file_in_tar))
               if not file_in_tar.isfile():
                 continue
               s3_bucket.put_object(
