@@ -302,8 +302,6 @@ Resources:
                 Body=tar.extractfile(file_in_tar)
               )
 
-            zip.close()
-
             # return success
             code_pipeline.put_job_success_result(jobId=job_id)
       Handler: index.handler
