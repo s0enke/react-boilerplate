@@ -278,6 +278,7 @@ Resources:
           import tempfile
           import tarfile
           import json
+          import mimetypes
 
           code_pipeline = boto3.client('codepipeline')
 
@@ -314,7 +315,8 @@ Resources:
                 continue
               s3_bucket.put_object(
                 Key=file_in_tar.name,
-                Body=tar.extractfile(file_in_tar)
+                Body=tar.extractfile(file_in_tar),
+                ContentType=mimetypes.guess_type(file_in_tar.name)
               )
 
             # return success
