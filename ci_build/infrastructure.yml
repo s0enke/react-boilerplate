@@ -313,11 +313,15 @@ Resources:
             for file_in_tar in tar:
               if not file_in_tar.isfile():
                 continue
-              s3_bucket.put_object(
-                Key=file_in_tar.name,
-                Body=tar.extractfile(file_in_tar),
-                ContentType=mimetypes.guess_type(file_in_tar.name)[0]
-              )
+
+              s3_put_params = {
+                "Key": file_in_tar.name,
+                "Body": tar.extractfile(file_in_tar),
+              }
+              guessed_content_type = mimetypes.guess_type(file_in_tar.name)[0]
+              if guessed_content_type is not None:
+                s3_put_params['ContentType'] = guessed_content_type
+              s3_bucket.put_object(**s3_put_params)
 
             # return success
             code_pipeline.put_job_success_result(jobId=job_id)
