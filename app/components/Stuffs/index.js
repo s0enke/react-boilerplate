@@ -22,7 +22,7 @@ class Stuffs extends React.Component {
   }
   render() {
     return (
-      <pre>{JSON.stringify(this.state.data, null, 2)}</pre>
+      <div><h1>test</h1><pre>{JSON.stringify(this.state.data, null, 2)}</pre></div>
     );
   }
 }
