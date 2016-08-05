@@ -186,31 +186,23 @@ Resources:
           var util = require('util');
 
           exports.handler = function(event, context) {
-            console.log(util.inspect(event, {depth: null}));
             var job = event['CodePipeline.job'];
             var jobId = job.id;
 
             var inputArtifactConfig = job.data.inputArtifacts[0];
             var outputArtifactConfig = job.data.outputArtifacts[0];
-            console.log(util.inspect(outputArtifactConfig, {depth: null}));
 
             process.env.HOME = '/tmp';
-            console.log(child_process.execSync('rm -fr /tmp/lambda_function /tmp/.npm /tmp/bin', {encoding: 'utf-8'}));
+            child_process.execSync('rm -fr /tmp/lambda_function /tmp/.npm /tmp/bin', {encoding: 'utf-8'});
             fs.mkdirSync('/tmp/lambda_function');
             process.chdir('/tmp/lambda_function');
 
-
             // install newer version of node
-            console.log(child_process.execSync('node /usr/local/lib64/node-v4.3.x/lib/node_modules/npm/bin/npm-cli.js install npm --prefix=/tmp --progress=false', {encoding: 'utf-8'}));
+            child_process.execSync('node /usr/local/lib64/node-v4.3.x/lib/node_modules/npm/bin/npm-cli.js install npm --prefix=/tmp --progress=false', {encoding: 'utf-8'});
 
-            console.log(child_process.execSync('find /tmp/ -name npm -type f', {encoding: 'utf-8'}));
             fs.mkdirSync('/tmp/bin');
             fs.symlinkSync('/tmp/node_modules/npm/bin/npm-cli.js', '/tmp/bin/npm');
             process.env.PATH = '/tmp/bin:' + process.env.PATH;
-
-
-            console.log(child_process.execSync('npm --version', {encoding: 'utf-8'}));
-            //return;
 
             var params = {
               Bucket: inputArtifactConfig.location.s3Location.bucketName,
@@ -228,10 +220,10 @@ Resources:
 
             s3.getObject(params).createReadStream().pipe(file);
             file.on('close', function(){
-              console.log(child_process.execSync('unzip artifact.zip', {encoding: 'utf-8'}));
-              console.log(child_process.execSync('npm install', {encoding: 'utf-8'}));
-              console.log(child_process.execSync('npm run build', {encoding: 'utf-8'}));
-              console.log(child_process.execSync('cd build && tar vcfz ../build.tgz *', {encoding: 'utf-8'}));
+              child_process.execSync('unzip artifact.zip', {encoding: 'utf-8'});
+              child_process.execSync('npm install', {encoding: 'utf-8'});
+              child_process.execSync('npm run build', {encoding: 'utf-8'});
+              child_process.execSync('cd build && tar vcfz ../build.tgz *', {encoding: 'utf-8'});
 
               var uploadParams = {
                 Bucket: outputArtifactConfig.location.s3Location.bucketName,
