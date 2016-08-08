@@ -134,17 +134,33 @@ Resources:
           Actions:
             - InputArtifacts:
                 - Name: SourceOutput
+              Name: NpmStepBuildFunction
+              ActionTypeId:
+                Category: Invoke
+                Owner: AWS
+                Version: 1
+                Provider: Lambda
+              OutputArtifacts:
+                - Name: NpmStepFunction
+              Configuration:
+                FunctionName:
+                  Ref: NpmStepBuildFunction
+              RunOrder: 1
+            - InputArtifacts:
+                - Name: SourceOutput
               Name: UpdateInfrastructure
               ActionTypeId:
                 Category: Invoke
                 Owner: AWS
                 Version: 1
                 Provider: Lambda
+              OutputArtifacts:
+                - Name: Build
               OutputArtifacts: []
               Configuration:
                 FunctionName:
                   Ref: CfnUpdateFunction
-              RunOrder: 1
+              RunOrder: 2
             - InputArtifacts:
                 - Name: SourceOutput
               Name: BuildStaticWebsite
@@ -158,7 +174,7 @@ Resources:
               Configuration:
                 FunctionName:
                   Ref: BuildFunction
-              RunOrder: 1
+              RunOrder: 2
         - Name: Deploy
           Actions:
             - InputArtifacts:
@@ -405,4 +421,88 @@ Resources:
           - CfnUpdateFunctionRole
           - Arn
       Runtime: python2.7
+  NpmStepBuildFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: |
+          var child_process = require('child_process');
+          var fs = require('fs');
+          var AWS = require('aws-sdk');
+          var util = require('util');
+
+          exports.handler = function(event, context) {
+            var job = event['CodePipeline.job'];
+            var jobId = job.id;
+
+            var inputArtifactConfig = job.data.inputArtifacts[0];
+            var outputArtifactConfig = job.data.outputArtifacts[0];
+
+            process.env.HOME = '/tmp';
+            child_process.execSync('rm -fr /tmp/lambda_function /tmp/.npm /tmp/bin', {encoding: 'utf-8'});
+            fs.mkdirSync('/tmp/lambda_function');
+            process.chdir('/tmp/lambda_function');
+
+            // install newer version of node
+            child_process.execSync('node /usr/local/lib64/node-v4.3.x/lib/node_modules/npm/bin/npm-cli.js install npm --prefix=/tmp --progress=false', {encoding: 'utf-8'});
+
+            fs.mkdirSync('/tmp/bin');
+            fs.symlinkSync('/tmp/node_modules/npm/bin/npm-cli.js', '/tmp/bin/npm');
+            process.env.PATH = '/tmp/bin:' + process.env.PATH;
+
+            var params = {
+              Bucket: inputArtifactConfig.location.s3Location.bucketName,
+              Key: inputArtifactConfig.location.s3Location.objectKey
+            };
+            var file = fs.createWriteStream("/tmp/lambda_function/artifact.zip");
+
+            var artifactCredentials = job.data.artifactCredentials;
+            var s3 = new AWS.S3({
+              "signatureVersion":"v4",
+              "accessKeyId": artifactCredentials.accessKeyId,
+              "secretAccessKey": artifactCredentials.secretAccessKey,
+              "sessionToken": artifactCredentials.sessionToken
+            });
+
+            s3.getObject(params).createReadStream().pipe(file);
+            file.on('close', function(){
+              child_process.execSync('unzip artifact.zip', {encoding: 'utf-8'});
+              process.chdir('ci_build/lambda');
+              child_process.execSync('npm install', {encoding: 'utf-8'});
+              child_process.execSync('zip -r /tmp/artifact.zip .', {encoding: 'utf-8'});
+
+              var uploadParams = {
+                Bucket: outputArtifactConfig.location.s3Location.bucketName,
+                Key: outputArtifactConfig.location.s3Location.objectKey,
+                Body: fs.createReadStream('/tmp/artifact.tgz'),
+                ServerSideEncryption: "aws:kms"
+              };
+
+              s3.putObject(
+                uploadParams,
+                function(err, data) {
+                  if(err) {
+                      context.fail(err);
+                  } else {
+                    var codepipeline = new AWS.CodePipeline();
+                    codepipeline.putJobSuccessResult({ jobId: jobId }, function(err, data) {
+                      if(err) {
+                          context.fail(err);
+                      } else {
+                          context.succeed();
+                      }
+                    });
+                  }
+                }
+              );
+            });
+          };
+      Handler: index.handler
+      Role:
+        Fn::GetAtt:
+          - BuildFunctionRole
+          - Arn
+      Runtime: nodejs4.3
+      Timeout: 300
+      MemorySize: 1536
       Timeout: 300
