@@ -9,6 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "serverless": "^1.0.0-alpha.2"
+    "serverless": "git+ssh://git@github.com/serverless/serverless.git"
   }
 }
