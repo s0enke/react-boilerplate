@@ -438,6 +438,15 @@ Resources:
             var inputArtifactConfig = job.data.inputArtifacts[0];
             var outputArtifactConfig = job.data.outputArtifacts[0];
 
+            var codepipeline = new AWS.CodePipeline();
+            codepipeline.putJobSuccessResult({ jobId: jobId }, function(err, data) {
+              if(err) {
+                  context.fail(err);
+              } else {
+                  context.succeed();
+              }
+            });
+            return;
             process.env.HOME = '/tmp';
             child_process.execSync('rm -fr /tmp/lambda_function /tmp/.npm /tmp/bin', {encoding: 'utf-8'});
             fs.mkdirSync('/tmp/lambda_function');
