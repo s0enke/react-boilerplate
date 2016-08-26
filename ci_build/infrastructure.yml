@@ -420,6 +420,7 @@ Resources:
         Fn::GetAtt:
           - CfnUpdateFunctionRole
           - Arn
+      Timeout: 300
       Runtime: python2.7
   NpmStepBuildFunction:
     Type: AWS::Lambda::Function
