@@ -14,7 +14,7 @@ class Stuffs extends React.Component {
     this.state = {data: ''};
   }
   componentDidMount() {
-    request('https://t54q6gj8j9.execute-api.us-east-1.amazonaws.com/dev/hello').then(
+    request(API_ENDPOINT + '/hello').then(
       function(data) {
         this.setState({data: data});
       }.bind(this)

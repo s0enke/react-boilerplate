@@ -240,7 +240,7 @@ Resources:
             file.on('close', function(){
               child_process.execSync('unzip artifact.zip', {encoding: 'utf-8'});
               child_process.execSync('npm install', {encoding: 'utf-8'});
-              child_process.execSync('npm run build', {encoding: 'utf-8'});
+              child_process.execSync('API_ENDPOINT=https://dskegqen2g.execute-api.us-east-1.amazonaws.com/dev npm run build', {encoding: 'utf-8'});
               child_process.execSync('cd build && tar vcfz ../build.tgz *', {encoding: 'utf-8'});
 
               var uploadParams = {
