@@ -399,7 +399,7 @@ Resources:
             try:
               cf.update_stack(
                 StackName=stack_name,
-                TemplateBody=cfn_template_json,
+                TemplateBody=cfn_template_yaml,
                 Parameters=[
                   {
                     'ParameterKey': 'GithubOauthToken',
