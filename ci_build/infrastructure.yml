@@ -370,9 +370,8 @@ Resources:
             session_token = job_data['artifactCredentials']['sessionToken']
 
             stack_name = 'react-boilerplate-ci-infrastructure'
-            file_in_zip = 'ci_build/infrastructure.json'
             file_in_zip_yaml = 'ci_build/infrastructure.yml'
-            cfn_yaml_file = '/tmp/infrastructure.json'
+            cfn_yaml_file = '/tmp/infrastructure.yml'
 
             # download artifact
             session = Session(aws_access_key_id=key_id,
@@ -388,7 +387,6 @@ Resources:
             with tempfile.NamedTemporaryFile() as tmp_file:
               s3.download_file(bucket, key, tmp_file.name)
               with zipfile.ZipFile(tmp_file.name, 'r') as zip:
-                cfn_template_json = zip.read(file_in_zip)
                 cfn_template_yaml = zip.read(file_in_zip_yaml)
 
             text_file = open(cfn_yaml_file, "w")
